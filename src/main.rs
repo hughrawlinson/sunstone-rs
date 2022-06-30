@@ -128,7 +128,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // let mut port = serial::open(&args.tty_path).unwrap();
     // let reader = dsmr5::Reader::new(port.bytes().map(|b| b.unwrap()));
 
-    let mut port = serialport::new(args.tty_path, 115_200)
+    let port = serialport::new(args.tty_path, 115_200)
         .timeout(Duration::from_millis(1000 * 10 * 3))
         .open()
         .expect("Failed to open Serial Port");
