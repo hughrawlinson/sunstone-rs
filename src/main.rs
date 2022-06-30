@@ -1,6 +1,8 @@
 use clap::Parser;
 use serde::Serialize;
-use std::{fs, process::exit};
+use std::error::Error;
+use std::io::Read;
+use std::time::Duration;
 
 #[derive(Parser)]
 struct Config {
@@ -117,18 +119,29 @@ impl From<dsmr5::state::State> for StateBridge {
     }
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     let args = Config::parse();
 
-    let contents = fs::read(args.tty_path).expect("Failed to read from tty");
+    // let contents = fs::read(args.tty_path).expect("Failed to read from tty");
 
-    let reader = dsmr5::Reader::new(contents.into_iter());
+    // let reader = dsmr5::Reader::new(contents.into_iter());
+    // let mut port = serial::open(&args.tty_path).unwrap();
+    // let reader = dsmr5::Reader::new(port.bytes().map(|b| b.unwrap()));
+
+    let mut port = serialport::new(args.tty_path, 115_200)
+        .timeout(Duration::from_millis(1000 * 10 * 3))
+        .open()
+        .expect("Failed to open Serial Port");
+
+    let reader = dsmr5::Reader::new(port.bytes().map(|b| b.unwrap()));
 
     for readout in reader {
         let telegram = readout.to_telegram().unwrap();
         let state = dsmr5::Result::<dsmr5::state::State>::from(&telegram).unwrap();
         let state_bridge: StateBridge = state.into();
         println!("{}", serde_json::to_string(&state_bridge).unwrap());
-        exit(0);
+        return Ok(());
     }
+
+    Ok(())
 }
