@@ -122,12 +122,6 @@ impl From<dsmr5::state::State> for StateBridge {
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Config::parse();
 
-    // let contents = fs::read(args.tty_path).expect("Failed to read from tty");
-
-    // let reader = dsmr5::Reader::new(contents.into_iter());
-    // let mut port = serial::open(&args.tty_path).unwrap();
-    // let reader = dsmr5::Reader::new(port.bytes().map(|b| b.unwrap()));
-
     let port = serialport::new(args.tty_path, 115_200)
         .timeout(Duration::from_millis(1000 * 10 * 3))
         .open()
